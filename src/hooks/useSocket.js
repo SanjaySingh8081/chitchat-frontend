@@ -9,7 +9,7 @@ export function useSocket(token) {
     if (!token) return;
 
     // Create the socket connection
-    const newSocket = io('http://localhost:3001', {
+    const newSocket = io(import.meta.env.VITE_BASE_URL, {
       transports: ['websocket'],
       auth: { token }
     });
