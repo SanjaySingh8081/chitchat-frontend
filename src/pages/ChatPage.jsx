@@ -28,6 +28,8 @@ function ChatPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [typingUser, setTypingUser] = useState(null);
   const [viewingProfile, setViewingProfile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
 
   const token = localStorage.getItem('token');
   const socket = useSocket(token);
@@ -300,6 +302,18 @@ const handleDeleteMessage = async (messageId) => {
               </button>
             </div>
           </div>
+
+{/* 🔍 Contact Search Bar */}
+<div className="contact-search">
+  <input
+    type="text"
+    placeholder="Search contacts..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
+    className="search-input"
+  />
+</div>
+
 
           <div className="user-list">
             {users.map((user) => (
