@@ -5,7 +5,8 @@ import './AuthForm.css';
 import TopBar from "../components/TopBar";
 
 import '../App.css';
-const BASE_URL = "https://chitchat-server-zp6o.onrender.com";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
+
 
 
 export default function AddContactPage() {

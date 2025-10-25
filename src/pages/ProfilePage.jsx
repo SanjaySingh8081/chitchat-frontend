@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
-const BASE_URL = "https://chitchat-server-zp6o.onrender.com";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
+
 
 const ProfilePage = () => {
   const navigate = useNavigate();
