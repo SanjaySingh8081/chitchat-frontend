@@ -303,16 +303,20 @@ const handleDeleteMessage = async (messageId) => {
             </div>
           </div>
 
-{/* 🔍 Contact Search Bar */}
+{/* 🔍 Modern Contact Search Bar */}
 <div className="contact-search">
-  <input
-    type="text"
-    placeholder="Search contacts..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-    className="search-input"
-  />
+  <div className="search-bar">
+    <i className="fas fa-search search-icon"></i>
+    <input
+      type="text"
+      placeholder="Search contacts..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
+      className="search-input"
+    />
+  </div>
 </div>
+
 
 
           <div className="user-list">
