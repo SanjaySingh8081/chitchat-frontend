@@ -21,9 +21,10 @@ export default function AddContactPage() {
     setSearchResults([]);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${BASE_URL}/api/users/search?email=${searchEmail}`, {
-        headers: { 'x-auth-token': token }
-      });
+    const response = await axios.get(`${BASE_URL}/api/users/search?email=${email}`, {
+  headers: { 'x-auth-token': localStorage.getItem('token') },
+});
+
       setSearchResults(response.data);
       if (response.data.length === 0) {
         setMessage('No users found.');
