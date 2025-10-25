@@ -13,9 +13,10 @@ function RequestsPage() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/contacts/requests`, {
-          headers: { "x-auth-token": token },
-        });
+        const res = await axios.get(`${BASE_URL}/api/contact-requests/pending`, {
+  headers: { "x-auth-token": token },
+});
+
         setRequests(res.data);
       } catch (err) {
         console.error("Failed to fetch requests:", err);
