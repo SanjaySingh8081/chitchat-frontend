@@ -315,7 +315,7 @@ const handleDeleteMessage = async (messageId) => {
 </div>
 
 
-   <div className="user-list">
+          <div className="user-list">
   {users
     .filter(
       (user) =>
@@ -343,6 +343,7 @@ const handleDeleteMessage = async (messageId) => {
     ))}
 </div>
 
+        </div>
 
      {/* ✅ Chat window */}
 <div className="chat-window">
