@@ -315,28 +315,34 @@ const handleDeleteMessage = async (messageId) => {
 </div>
 
 
-          <div className="user-list">
-            {users.map((user) => (
-              <div
-                key={user._id}
-                className={`user-item ${selectedUser?._id === user._id ? 'selected' : ''}`}
-                onClick={() => handleSelectUser(user)}
-              >
-                <div className="contact-avatar">
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.name || user.email} />
-                  ) : (
-                    <span>{(user.name?.[0] || user.email?.[0] || 'U').toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="contact-info">
-                  <span className="contact-name">{user.name || user.email}</span>
-                </div>
-                {user.isOnline && <span className="online-dot" />}
-              </div>
-            ))}
-          </div>
+   <div className="user-list">
+  {users
+    .filter(
+      (user) =>
+        user.name?.toLowerCase().includes(searchQuery) ||
+        user.email?.toLowerCase().includes(searchQuery)
+    )
+    .map((user) => (
+      <div
+        key={user._id}
+        className={`user-item ${selectedUser?._id === user._id ? 'selected' : ''}`}
+        onClick={() => handleSelectUser(user)}
+      >
+        <div className="contact-avatar">
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.name || user.email} />
+          ) : (
+            <span>{(user.name?.[0] || user.email?.[0] || 'U').toUpperCase()}</span>
+          )}
         </div>
+        <div className="contact-info">
+          <span className="contact-name">{user.name || user.email}</span>
+        </div>
+        {user.isOnline && <span className="online-dot" />}
+      </div>
+    ))}
+</div>
+
 
      {/* ✅ Chat window */}
 <div className="chat-window">

@@ -2309,3 +2309,33 @@ button {
     transform: scale(0.9);
   }
 }
+
+/* 🔍 Contact search box styling */
+.contact-search {
+  padding: 10px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.search-input {
+  width: 90%;
+  padding: 8px 12px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
