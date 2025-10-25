@@ -74,7 +74,7 @@ function ChatPage() {
     if (!currentUser) return;
     const fetchContacts = async () => {
       try {
-        const res = await axios.get('${BASE_URL}/api/contacts', {
+        const res = await axios.get(`${BASE_URL}/api/contacts`, {
           headers: { 'x-auth-token': token },
         });
         setUsers(res.data);
