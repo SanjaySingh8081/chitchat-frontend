@@ -72,38 +72,64 @@ function ChatPage() {
     fetchCurrentUserProfile();
   }, [token, navigate]);
 
-  // Fetch contacts
-  useEffect(() => {
-    if (!currentUser) return;
-    const fetchContacts = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/contacts`, {
-          headers: { 'x-auth-token': token },
-        });
-        setUsers(res.data);
-      } catch (err) {
-        console.error('Could not fetch contacts.', err);
-      }
-    };
-    fetchContacts();
-  }, [currentUser, token]);
+// 🔹 Fetch contacts and sort them by most recent message time
+useEffect(() => {
+  if (!currentUser) return;
+
+  const fetchContacts = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/contacts`, {
+        headers: { 'x-auth-token': token },
+      });
+
+      // ✅ Sort contacts by their most recent message timestamp
+      const sortedUsers = res.data.sort((a, b) => {
+        const aLast = new Date(a.lastMessageAt || 0);
+        const bLast = new Date(b.lastMessageAt || 0);
+        return bLast - aLast;
+      });
+
+      setUsers(sortedUsers);
+    } catch (err) {
+      console.error('Could not fetch contacts.', err);
+    }
+  };
+
+  fetchContacts();
+}, [currentUser, token]);
+
 
   // Socket events (messages, typing, presence, profile updates)
   useEffect(() => {
     if (!socket || !currentUser) return;
 
-    const handleReceiveMessage = (data) => {
-      const currentSelected = selectedUserRef.current;
-      const currentSelf = currentUserRef.current;
-      if (
-        currentSelected &&
-        currentSelf &&
-        ((data.sender === currentSelf._id && data.recipient === currentSelected._id) ||
-          (data.sender === currentSelected._id && data.recipient === currentSelf._id))
-      ) {
-        setMessages((prev) => [...prev, data]);
-      }
-    };
+ const handleReceiveMessage = (data) => {
+  const currentSelected = selectedUserRef.current;
+  const currentSelf = currentUserRef.current;
+
+  if (
+    currentSelected &&
+    currentSelf &&
+    ((data.sender === currentSelf._id && data.recipient === currentSelected._id) ||
+      (data.sender === currentSelected._id && data.recipient === currentSelf._id))
+  ) {
+    // ✅ 1. Add the new message to the chat window
+    setMessages((prev) => [...prev, data]);
+
+    // ✅ 2. Update the contact’s lastMessageAt to now and re-sort contacts list instantly
+    setUsers((prevUsers) => {
+      const updatedUsers = prevUsers.map((u) =>
+        u._id === data.sender || u._id === data.recipient
+          ? { ...u, lastMessageAt: new Date() }
+          : u
+      );
+      return updatedUsers.sort(
+        (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
+      );
+    });
+  }
+};
+
 
    const handleTypingNotification = ({ senderId }) => {
   const currentSelected = selectedUserRef.current;
@@ -207,15 +233,32 @@ useEffect(() => {
     }
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !socket || !selectedUser) return;
-    socket.emit('send_message', {
-      recipientId: selectedUser._id,
-      content: newMessage,
-    });
-    setNewMessage('');
-  };
+ const handleSendMessage = (e) => {
+  e.preventDefault();
+  if (!newMessage.trim() || !socket || !selectedUser) return;
+
+  // ✅ Emit the message to the server
+  socket.emit('send_message', {
+    recipientId: selectedUser._id,
+    content: newMessage,
+  });
+
+  // ✅ Clear input field
+  setNewMessage('');
+
+  // ✅ Instantly move this contact to the top of the chat list
+  setUsers((prevUsers) => {
+    const updatedUsers = prevUsers.map((u) =>
+      u._id === selectedUser._id
+        ? { ...u, lastMessageAt: new Date() }
+        : u
+    );
+    return updatedUsers.sort(
+      (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
+    );
+  });
+};
+
 
   const handleInputChange = (e) => {
     setNewMessage(e.target.value);
