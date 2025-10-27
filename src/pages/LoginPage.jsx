@@ -12,27 +12,26 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // Send the login credentials to the backend
-      const response = await axios.post(`${BASE_URL}/api/login`, {
-        email,
-        password,
-      });
+  e.preventDefault();
+  try {
+    const response = await axios.post(`${BASE_URL}/api/login`, { email, password });
+    
+    // ✅ Always ensure we have a valid token
+    const token = response.data?.token;
+    if (!token) throw new Error("No token received from server");
 
-      // Handle success: Save the token and redirect
-      const { token } = response.data;
-      localStorage.setItem('token', token); // Save the token to the browser's local storage
-      
-      alert('Login successful!');
-      navigate('/'); // Redirect to the main chat page
+    // Save token
+    localStorage.setItem("token", token);
 
-    } catch (error) {
-      // Handle error
-      console.error('Login error:', error.response.data);
-      alert(error.response.data.message || 'Login failed. Please try again.');
-    }
-  };
+    alert("Login successful!");
+    navigate("/"); // Redirect to main chat page
+  } catch (error) {
+    console.error("Login error:", error);
+    alert(
+      error.response?.data?.message || "Login failed. Please try again."
+    );
+  }
+};
 
   return (
     <div className="auth-container">

@@ -2353,3 +2353,63 @@ button {
 .search-input::placeholder {
   color: #9ca3af;
 }
+
+ /* dispalys the time stamp at right side  */
+.contact-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+
+.contact-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.contact-last-message-time {
+  font-size: 0.8rem;
+  text-align: right;
+  min-width: 55px;
+}
+
+.contact-last-message {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.me-indicator {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.message-preview {
+  font-weight: 400;
+  color: #444;
+}
+.message-preview.no-message {
+  color: #aaa;
+  font-style: italic;
+}
+
+.message-preview strong {
+  font-weight: 600;
+}

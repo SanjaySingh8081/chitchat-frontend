@@ -19,6 +19,31 @@ const formatTimestamp = (date) => {
   });
 };
 
+// Format last message time WhatsApp-style
+// Format last seen like WhatsApp: 8:41 PM, Yesterday, or Oct 12
+const formatLastMessageTime = (timestamp) => {
+  if (!timestamp) return "";
+
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  if (isToday) {
+    // Show only time if today
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } else if (isYesterday) {
+    return "Yesterday";
+  } else {
+    // Show month and day for older dates
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+};
+
+
 function ChatPage() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -82,6 +107,9 @@ useEffect(() => {
         headers: { 'x-auth-token': token },
       });
 
+      // 🧩 Debugging line — check if your frontend is getting lastMessageContent
+      console.log("Fetched contacts:", res.data);
+
       // ✅ Sort contacts by their most recent message timestamp
       const sortedUsers = res.data.sort((a, b) => {
         const aLast = new Date(a.lastMessageAt || 0);
@@ -99,6 +127,7 @@ useEffect(() => {
 }, [currentUser, token]);
 
 
+
   // Socket events (messages, typing, presence, profile updates)
   useEffect(() => {
     if (!socket || !currentUser) return;
@@ -107,27 +136,33 @@ useEffect(() => {
   const currentSelected = selectedUserRef.current;
   const currentSelf = currentUserRef.current;
 
-  if (
-    currentSelected &&
-    currentSelf &&
-    ((data.sender === currentSelf._id && data.recipient === currentSelected._id) ||
-      (data.sender === currentSelected._id && data.recipient === currentSelf._id))
-  ) {
-    // ✅ 1. Add the new message to the chat window
-    setMessages((prev) => [...prev, data]);
+  if (!currentSelected || !currentSelf) return;
 
-    // ✅ 2. Update the contact’s lastMessageAt to now and re-sort contacts list instantly
-    setUsers((prevUsers) => {
-      const updatedUsers = prevUsers.map((u) =>
-        u._id === data.sender || u._id === data.recipient
-          ? { ...u, lastMessageAt: new Date() }
-          : u
-      );
-      return updatedUsers.sort(
-        (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
-      );
-    });
+  // ✅ Add the message to the chat window
+  if (
+    (data.sender === currentSelf._id && data.recipient === currentSelected._id) ||
+    (data.sender === currentSelected._id && data.recipient === currentSelf._id)
+  ) {
+    setMessages((prev) => [...prev, data]);
   }
+
+  // ✅ Update last message preview for both sender and recipient
+  setUsers((prevUsers) => {
+    const updatedUsers = prevUsers.map((u) => {
+      if (u._id === data.sender || u._id === data.recipient) {
+        return {
+          ...u,
+          lastMessageAt: new Date(),
+          lastMessageContent: data.content,
+          lastMessageFromMe: data.sender === currentSelf._id,
+        };
+      }
+      return u;
+    });
+    return updatedUsers.sort(
+      (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
+    );
+  });
 };
 
 
@@ -237,20 +272,24 @@ useEffect(() => {
   e.preventDefault();
   if (!newMessage.trim() || !socket || !selectedUser) return;
 
-  // ✅ Emit the message to the server
-  socket.emit('send_message', {
+  const messageData = {
     recipientId: selectedUser._id,
     content: newMessage,
-  });
+  };
 
-  // ✅ Clear input field
+  socket.emit('send_message', messageData);
   setNewMessage('');
 
-  // ✅ Instantly move this contact to the top of the chat list
+  // ✅ Update UI instantly with latest message preview
   setUsers((prevUsers) => {
     const updatedUsers = prevUsers.map((u) =>
       u._id === selectedUser._id
-        ? { ...u, lastMessageAt: new Date() }
+        ? {
+            ...u,
+            lastMessageAt: new Date(),
+            lastMessageContent: newMessage,
+            lastMessageFromMe: true,
+          }
         : u
     );
     return updatedUsers.sort(
@@ -361,8 +400,7 @@ const handleDeleteMessage = async (messageId) => {
 </div>
 
 
-
-          <div className="user-list">
+<div className="user-list">
   {users
     .filter(
       (user) =>
@@ -375,6 +413,7 @@ const handleDeleteMessage = async (messageId) => {
         className={`user-item ${selectedUser?._id === user._id ? 'selected' : ''}`}
         onClick={() => handleSelectUser(user)}
       >
+        {/* --- Avatar --- */}
         <div className="contact-avatar">
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.name || user.email} />
@@ -382,13 +421,50 @@ const handleDeleteMessage = async (messageId) => {
             <span>{(user.name?.[0] || user.email?.[0] || 'U').toUpperCase()}</span>
           )}
         </div>
-        <div className="contact-info">
-          <span className="contact-name">{user.name || user.email}</span>
+
+        {/* --- Contact Info --- */}
+        <div className="contact-info-wrapper">
+          <div className="contact-header">
+            <span className="contact-name">{user.name || user.email}</span>
+            <span
+              className="contact-last-message-time"
+              style={{
+                color: user.isOnline ? '#2ecc71' : '#999',
+                fontWeight: user.isOnline ? '600' : 'normal',
+              }}
+            >
+              {user.isOnline ? 'Online' : formatLastMessageTime(user.lastSeen)}
+            </span>
+          </div>
+
+          {/* ✅ Last message preview below name */}
+          <div className="contact-last-message">
+            {user.lastMessageContent ? (
+              <span className="message-preview">
+                {user.lastMessageFromMe && (
+                  <strong style={{ color: '#007bff' }}>You: </strong>
+                )}
+                {user.lastMessageContent.length > 30
+                  ? user.lastMessageContent.slice(0, 30) + '...'
+                  : user.lastMessageContent}
+              </span>
+            ) : (
+              <span className="message-preview" style={{ color: '#aaa' }}>
+                No messages yet
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* --- Green dot indicator --- */}
         {user.isOnline && <span className="online-dot" />}
       </div>
     ))}
 </div>
+
+
+
+
 
         </div>
 
